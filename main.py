@@ -26,7 +26,7 @@ HELP_COMMAND = """
 <b>/help</b>-<em>list of commands</em>
 <b>/start</b>-<em>start the bot</em>
 """
-
+print("Test")
 
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message) -> None:
