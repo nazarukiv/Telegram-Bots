@@ -1,8 +1,10 @@
 from aiogram import Dispatcher, types, Router, F
 from aiogram.filters import Command, CommandStart, or_f
 from main import keyboard
+from filters.chat_types import ChatTypeFilter
 
 user_private_router = Router()
+user_private_router.message.filter(ChatTypeFilter(['private']))
 
 @user_private_router.message(CommandStart())
 async def cmd_start(message: types.Message):
