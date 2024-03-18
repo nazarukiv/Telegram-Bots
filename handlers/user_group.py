@@ -4,7 +4,7 @@ from aiogram.filters import Command, CommandStart, or_f
 
 user_group_router = Router()
 
-restricted_words = {'fuck', 'bitch', 'dick'}
+restricted_words = {'stupid', 'idiot', 'dump'}
 
 def clean_text(text: str):
     return text.translate(str.maketrans('', '', punctuation))
