@@ -1,4 +1,4 @@
-from aiogram import Dispatcher, types, Router
+from aiogram import Dispatcher, types, Router, F
 from aiogram.filters import Command, CommandStart
 from main import keyboard
 
@@ -11,5 +11,25 @@ async def cmd_start(message: types.Message):
 @user_private_router.message(Command("menu"))
 async def menu_cmd(message: types.Message):
     await message.answer("Here is menu:")
+
+@user_private_router.message(Command("about"))
+async def about_cmd(message: types.Message):
+    await message.answer("About Us:")
+
+@user_private_router.message(Command("payment"))
+async def payment_cmd(message: types.Message):
+    await message.answer("Options for payment:")
+
+@user_private_router.message(Command("shipping"))
+async def ship_cmd(message: types.Message):
+    await message.answer("Shipping details and options:")
+
+@user_private_router.message(F.text)
+async def ship_cmd(message: types.Message):
+    await message.answer("It's magic filter")
+
+
+
+
 
 

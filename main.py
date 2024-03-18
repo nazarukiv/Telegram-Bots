@@ -1,9 +1,12 @@
 import os
 import asyncio
 from aiogram import Bot, Dispatcher
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, \
+    BotCommandScopeAllPrivateChats
 from aiogram.filters import Command, CommandStart
 from dotenv import find_dotenv, load_dotenv
+from common.bot_cmds_list import private
+
 
 load_dotenv(find_dotenv())
 
@@ -31,6 +34,7 @@ keyboard = ReplyKeyboardMarkup(
 async def main():
     from handlers.user_private import user_private_router
     dp.include_router(user_private_router)
+    #await bot.set_my_commands(commands=private, scope=BotCommandScopeAllPrivateChats())
     await dp.start_polling(bot, allowed_updates=ALLOWED_UPDATES)
 
 
