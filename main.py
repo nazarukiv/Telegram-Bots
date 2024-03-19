@@ -1,6 +1,8 @@
 import os
 import asyncio
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, \
     BotCommandScopeAllPrivateChats
 from aiogram.filters import Command, CommandStart
@@ -8,11 +10,12 @@ from dotenv import find_dotenv, load_dotenv
 from common.bot_cmds_list import private
 from handlers.user_group import user_group_router
 
+
 load_dotenv(find_dotenv())
 
 ALLOWED_UPDATES = ['message, edited_message']
 
-bot = Bot(token=os.getenv("TOKEN"))
+bot = Bot(token=os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 
 inl = InlineKeyboardMarkup(inline_keyboard=[
