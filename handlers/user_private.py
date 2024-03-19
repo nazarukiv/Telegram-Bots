@@ -32,6 +32,24 @@ async def ship_cmd(message: types.Message):
     await message.answer("Shipping details and options:")
 
 
+@user_private_router.message(F.contact)
+async def get_contact(message: types.Message):
+    await message.answer(f"Number was received")
+    await message.answer(str(message.contact))
+
+
+@user_private_router.message(F.location)
+async def get_contact(message: types.Message):
+    await message.answer(f"Location was received")
+    await message.answer(str(message.location))
+
+@user_private_router.message(Command("location"))
+async def get_contact(message: types.Message):
+    await message.answer(f"Location was received", reply_markup=reply.test_kb)
+
+
+
+
 
 
 
