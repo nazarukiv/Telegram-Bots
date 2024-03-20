@@ -1,5 +1,7 @@
 from aiogram import F, Router, types
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
 
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from kbds.reply import get_keyboard
@@ -10,11 +12,11 @@ admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 
 ADMIN_KB = get_keyboard(
-    "Добавить товар",
-    "Изменить товар",
-    "Удалить товар",
-    "Я так, просто посмотреть зашел",
-    placeholder="Выберите действие",
+    "Add products",
+    "Change product",
+    "Delete product",
+    "Just check",
+    placeholder="Choose what you want to do.",
     sizes=(2, 1, 1),
 )
 
@@ -40,41 +42,80 @@ async def delete_product(message: types.Message):
 
 
 #For FSM
+class AddProduct(StatesGroup):
+    name = State()
+    description = State()
+    price = State()
+    image = State()
 
-@admin_router.message(F.text == "Add products")
-async def add_product(message: types.Message):
+    texts = {
+        'AddProduct:name': 'Write down name again',
+        'AddProduct:description': 'Write down description again',
+        'AddProduct:price': 'Write down price again',
+        'AddProduct:image': "That's last step, then ...",
+
+    }
+
+
+
+@admin_router.message(StateFilter(None), F.text == "Add products")
+async def add_product(message: types.Message, state: FSMContext):
     await message.answer(
         "Write down name of product", reply_markup=types.ReplyKeyboardRemove()
     )
-
+    await state.set_state(AddProduct.name)
 
 @admin_router.message(Command("Cancel"))
-@admin_router.message(F.text.casefold() == "Cancel")
-async def cancel_handler(message: types.Message) -> None:
-    await message.answer("Actons canceled", reply_markup=ADMIN_KB)
+@admin_router.message(F.text.casefold() == "cancel")
+async def cancel_handler(message: types.Message, state: FSMContext) -> None:
+    current_state = await state.get_state()
+    if current_state is None:
+        return
 
+    await state.set_state(None)
+    await message.answer("Actions canceled", reply_markup=ADMIN_KB)
 
-@admin_router.message(Command("Back"))
-@admin_router.message(F.text.casefold() == "Back")
-async def cancel_handler(message: types.Message) -> None:
-    await message.answer(f"OK, we comeback to last step")
+@admin_router.message(StateFilter('*'), Command("Back"))
+@admin_router.message(StateFilter('*'), F.text.casefold() == "back")
+async def cancel_handler(message: types.Message, state: FSMContext) -> None:
+    current_state = await state.get_state()
 
+    if current_state == AddProduct.name.state:
+        await message.answer("Next step is unavailable, or write down name of product or write cancel ")
+        return
 
-@admin_router.message(F.text)
-async def add_name(message: types.Message):
+    previous = None
+    for step in AddProduct.__all_states__:
+        if step.state == current_state:
+            await state.set_state(previous.state)
+            await message.answer(f"Cool, you came back to the previous step\n{AddProduct.texts[previous.state]}")
+            return
+        previous = step
+
+@admin_router.message(AddProduct.name ,F.text)
+async def add_name(message: types.Message, state: FSMContext):
+    await state.update_data(name=message.text)
     await message.answer("Write down description of product")
+    await state.set_state(AddProduct.description)
 
-
-@admin_router.message(F.text)
-async def add_description(message: types.Message):
+@admin_router.message(AddProduct.description, F.text)
+async def add_description(message: types.Message, state: FSMContext):
+    await state.update_data(description=message.text)
     await message.answer("Write down price of product")
+    await state.set_state(AddProduct.price)
 
 
-@admin_router.message(F.text)
-async def add_price(message: types.Message):
+@admin_router.message(AddProduct.price, F.text)
+async def add_price(message: types.Message, state: FSMContext):
+    await state.update_data(price=message.text)
     await message.answer("Upload photo of product")
+    await state.set_state(AddProduct.image)
 
 
-@admin_router.message(F.photo)
-async def add_image(message: types.Message):
+@admin_router.message(AddProduct.image, F.photo)
+async def add_image(message: types.Message, state: FSMContext):
+    await state.update_data(image=message.photo[-1].file_id)  # Update 'image' key
     await message.answer("Product was added", reply_markup=ADMIN_KB)
+    data = await state.get_data()
+    await message.answer(str(data))
+    await state.clear()
