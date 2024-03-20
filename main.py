@@ -4,8 +4,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.strategy import FSMStrategy
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, \
-    BotCommandScopeAllPrivateChats
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, BotCommandScopeAllPrivateChats
 from aiogram.filters import Command, CommandStart
 from dotenv import find_dotenv, load_dotenv
 from common.bot_cmds_list import private
