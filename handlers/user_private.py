@@ -1,7 +1,6 @@
 from aiogram import Dispatcher, types, Router, F
 from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandStart, or_f
-from main import keyboard
 from filters.chat_types import ChatTypeFilter
 from kbds import reply
 from aiogram.utils.formatting import as_list, as_marked_list, Bold, as_marked_section

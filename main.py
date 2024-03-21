@@ -10,8 +10,12 @@ from dotenv import find_dotenv, load_dotenv
 from common.bot_cmds_list import private
 from handlers.admin_private import admin_router
 from handlers.user_group import user_group_router
-from middlewares.db import CounterMiddleware
+
+
+
 load_dotenv(find_dotenv())
+
+from database.engine import create_db, drop_db
 
 ALLOWED_UPDATES = ['message, edited_message']
 
@@ -20,25 +24,24 @@ bot.my_admins_list = []
 dp = Dispatcher(fsm_strategy = FSMStrategy.USER_IN_CHAT) #every user in each chat will have each data storage
 
 
+async def on_startup(bot):
 
-inl = InlineKeyboardMarkup(inline_keyboard=[
-    [
-        InlineKeyboardButton(text='Binance', url="https://www.binance.com/en"),
-        InlineKeyboardButton(text='ByBit', url="https://www.bybit.com/en/")
-    ],
-])
+    run_param = False
+    if run_param:
+        await drop_db()
 
-keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton(text="/create")],
-    ],
-    resize_keyboard=True,
-    one_time_keyboard=True
-)
+    await create_db()
+
+async def on_shutdown(bot):
+    print('bot broke')
 
 
 async def main():
     from handlers.user_private import user_private_router
+
+    await create_db()
+    dp.startup.register(on_startup)
+    dp.startup.register(on_shutdown)
 
     dp.include_router(user_private_router)
     dp.include_router(user_group_router)
