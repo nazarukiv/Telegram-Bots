@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from kbds.inline import get_callback_btns
 from kbds.reply import get_keyboard
-from database.orm_query import orm_add_product, orm_get_products
+from database.orm_query import orm_add_product, orm_get_products, orm_delete_product
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -29,18 +29,29 @@ async def add_product(message: types.Message):
 @admin_router.message(F.text == "Catalog")
 async def starring_at_product(message: types.Message, session: AsyncSession):
     for product in await orm_get_products(session):
-        keyboard = get_callback_btns(btns={
-            'Delete': f'delete_{product.id}',
-            'Change': f'change_{product.id}',
-        })
-
         await message.answer_photo(
             product.image,
             caption=f"<strong>{product.name}\
                     </strong>\n{product.description}\nPrice: {round(product.price, 2)}",
-            reply_markup=keyboard
+            reply_markup=get_callback_btns(
+                btns={
+                    "Delete": f"delete_{product.id}",
+                    "Change": f"change_{product.id}",
+                }
+            ),
         )
-    await message.answer("OK, here is the list of your products")
+    await message.answer("OK, here is list of products ⏫")
+
+
+@admin_router.callback_query(F.data.startswith("delete_"))
+async def delete_product_callback(callback: types.CallbackQuery, session: AsyncSession):
+    product_id = callback.data.split("_")[-1]
+    await orm_delete_product(session, int(product_id))
+
+    await callback.answer("Product deleted!")
+    await callback.message.answer("Product deleted!")
+
+
 
 
 #For FSM
