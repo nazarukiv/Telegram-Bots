@@ -5,6 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from filters.chat_types import ChatTypeFilter, IsAdmin
+from kbds.inline import get_callback_btns
 from kbds.reply import get_keyboard
 from database.orm_query import orm_add_product, orm_get_products
 
@@ -28,15 +29,18 @@ async def add_product(message: types.Message):
 @admin_router.message(F.text == "Catalog")
 async def starring_at_product(message: types.Message, session: AsyncSession):
     for product in await orm_get_products(session):
+        keyboard = get_callback_btns(btns={
+            'Delete': f'delete_{product.id}',
+            'Change': f'change_{product.id}',
+        })
+
         await message.answer_photo(
             product.image,
             caption=f"<strong>{product.name}\
                     </strong>\n{product.description}\nPrice: {round(product.price, 2)}",
+            reply_markup=keyboard
         )
-    await message.answer("OK, here is list of your products")
-
-
-
+    await message.answer("OK, here is the list of your products")
 
 
 #For FSM
