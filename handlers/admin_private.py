@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from kbds.reply import get_keyboard
-from database.orm_query import orm_add_product
+from database.orm_query import orm_add_product, orm_get_products
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -14,11 +14,9 @@ admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 ADMIN_KB = get_keyboard(
     "Add products",
-    "Change product",
-    "Delete product",
-    "Just check",
+    "Catalog",
     placeholder="Choose what you want to do.",
-    sizes=(2, 1, 1),
+    sizes=(2,),
 )
 
 
@@ -27,19 +25,18 @@ async def add_product(message: types.Message):
     await message.answer("What do you want to do?", reply_markup=ADMIN_KB)
 
 
-@admin_router.message(F.text == "Just check")
-async def starring_at_product(message: types.Message):
+@admin_router.message(F.text == "Catalog")
+async def starring_at_product(message: types.Message, session: AsyncSession):
+    for product in await orm_get_products(session):
+        await message.answer_photo(
+            product.image,
+            caption=f"<strong>{product.name}\
+                    </strong>\n{product.description}\nPrice: {round(product.price, 2)}",
+        )
     await message.answer("OK, here is list of your products")
 
 
-@admin_router.message(F.text == "Change product")
-async def change_product(message: types.Message):
-    await message.answer("OK, here is list of your products")
 
-
-@admin_router.message(F.text == "Delete product")
-async def delete_product(message: types.Message):
-    await message.answer("Choose product and delete")
 
 
 #For FSM
