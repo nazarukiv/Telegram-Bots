@@ -16,7 +16,7 @@ load_dotenv(find_dotenv())
 
 from database.engine import create_db, drop_db, session_maker
 
-ALLOWED_UPDATES = ['message, edited_message']
+ALLOWED_UPDATES = ['message, edited_message', 'callback_query']
 
 bot = Bot(token=os.getenv("TOKEN"), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 bot.my_admins_list = []
@@ -50,7 +50,7 @@ async def main():
 
 
     #await bot.set_my_commands(commands=private, scope=BotCommandScopeAllPrivateChats())
-    await dp.start_polling(bot, allowed_updates=ALLOWED_UPDATES)
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 
 if __name__ == '__main__':
