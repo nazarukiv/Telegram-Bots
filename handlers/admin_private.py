@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from filters.chat_types import ChatTypeFilter, IsAdmin
 from kbds.inline import get_callback_btns
 from kbds.reply import get_keyboard
-from database.orm_query import orm_add_product, orm_get_products, orm_delete_product
+from database.orm_query import orm_add_product, orm_get_products, orm_delete_product, orm_get_product
 
 admin_router = Router()
 admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
@@ -20,6 +20,19 @@ ADMIN_KB = get_keyboard(
     sizes=(2,),
 )
 
+class AddProduct(StatesGroup):
+    name = State()
+    description = State()
+    price = State()
+    image = State()
+
+    texts = {
+        'AddProduct:name': 'Write down name again',
+        'AddProduct:description': 'Write down description again',
+        'AddProduct:price': 'Write down price again',
+        'AddProduct:image': "That's last step, then ...",
+
+    }
 
 @admin_router.message(Command("admin"))
 async def add_product(message: types.Message):
@@ -51,26 +64,33 @@ async def delete_product_callback(callback: types.CallbackQuery, session: AsyncS
     await callback.answer("Product deleted!")
     await callback.message.answer("Product deleted!")
 
+@admin_router.callback_query(StateFilter(None), F.data.startswith("change_"))
+async def change_product_callback(
+    callback: types.CallbackQuery, state: FSMContext, session: AsyncSession
+):
+    product_id = callback.data.split("_")[-1]
 
+    product_for_change = await orm_get_product(session, int(product_id))
+
+    AddProduct.product_for_change = product_for_change
+
+    await callback.answer()
+    await callback.message.answer(
+        "Write down name of product", reply_markup=types.ReplyKeyboardRemove()
+    )
+    await state.set_state(AddProduct.name)
+
+
+# waiting for entering name
+@admin_router.message(StateFilter(None), F.text == "Add product")
+async def add_product(message: types.Message, state: FSMContext):
+    await message.answer(
+        "Write down the name of product ", reply_markup=types.ReplyKeyboardRemove()
+    )
+    await state.set_state(AddProduct.name)
 
 
 #For FSM
-class AddProduct(StatesGroup):
-    name = State()
-    description = State()
-    price = State()
-    image = State()
-
-    texts = {
-        'AddProduct:name': 'Write down name again',
-        'AddProduct:description': 'Write down description again',
-        'AddProduct:price': 'Write down price again',
-        'AddProduct:image': "That's last step, then ...",
-
-    }
-
-
-
 @admin_router.message(StateFilter(None), F.text == "Add products")
 async def add_product(message: types.Message, state: FSMContext):
     await message.answer(
