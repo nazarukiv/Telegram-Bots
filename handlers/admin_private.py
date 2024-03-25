@@ -26,6 +26,8 @@ class AddProduct(StatesGroup):
     price = State()
     image = State()
 
+    product_for_change = None
+
     texts = {
         'AddProduct:name': 'Write down name again',
         'AddProduct:description': 'Write down description again',
