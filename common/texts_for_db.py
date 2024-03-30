@@ -1,7 +1,7 @@
 from aiogram.utils.formatting import Bold, as_list, as_marked_section
 
 
-categories = ['Еда', 'Напитки']
+categories = ['y2k', 'casual']
 
 description_for_info_pages = {
     "main": "Welcome to our shop!",

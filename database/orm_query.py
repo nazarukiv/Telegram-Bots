@@ -46,6 +46,7 @@ class Paginator:
         raise IndexError(f'Previous page does not exist. Use has_previous() to check before.')
 
 
+#Work with banners
 async def orm_add_banner_description(session: AsyncSession, data: dict):
 
     query = select(Banner)
